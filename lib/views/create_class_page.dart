@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:file_picker/file_picker.dart';
@@ -21,6 +22,7 @@ class _CreateClassState extends State<CreateClass> {
   bool isLoading = true;
   final TextEditingController subjectController = TextEditingController();
   final TextEditingController gradeController = TextEditingController();
+  int? createdClassId;
 
   @override
   void initState() {
@@ -93,6 +95,9 @@ class _CreateClassState extends State<CreateClass> {
     );
 
     if (classResponse.statusCode == 200 || classResponse.statusCode == 201) {
+      final classData = jsonDecode(classResponse.body);
+      createdClassId = classData['id'];
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Class created successfully')),
       );
@@ -199,6 +204,10 @@ class _CreateClassState extends State<CreateClass> {
   }
 
   void showBookSheet(BuildContext context) {
+    Future<bool> requestStoragePermission() async {
+      var status = await Permission.storage.request();
+      return status.isGranted;
+    }
     final titleController = TextEditingController();
     final descController = TextEditingController();
     String? filePath;
@@ -249,20 +258,31 @@ class _CreateClassState extends State<CreateClass> {
                         : "PDF Selected ✅",
                   ),
                   ElevatedButton(
-                    onPressed: () async {
-                      final result = await FilePicker.platform
-                          .pickFiles(
-                        type: FileType.custom,
-                        allowedExtensions: ['pdf'],
-                      );
-                      if (result != null) {
-                        setModalState(() {
-                          filePath = result.files.single.path;
-                          fileBytes = result.files.single.bytes;
-                          fileName = result.files.single.name;
-                        });
-                      }
-                    },
+                      onPressed: () async {
+                        final hasPermission = await requestStoragePermission();
+                        if (!hasPermission) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("You must allow storage access to upload the file."),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+
+                        final result = await FilePicker.platform.pickFiles(
+                          type: FileType.custom,
+                          allowedExtensions: ['pdf'],
+                        );
+
+                        if (result != null) {
+                          setModalState(() {
+                            filePath = result.files.single.path;
+                            fileBytes = result.files.single.bytes;
+                            fileName = result.files.single.name;
+                          });
+                        }
+                      },
                     child: const Text("Upload PDF"),
                   ),
                 ],
@@ -292,7 +312,17 @@ class _CreateClassState extends State<CreateClass> {
                         request.fields['title'] = titleController.text;
                         request.fields['description'] =
                             descController.text;
-                        request.fields['class_id'] = '5';
+                        if (createdClassId != null) {
+                          request.fields['class_id'] = createdClassId.toString();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("❌ Please create a class first."),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
                         if (filePath != null) {
                           if (kIsWeb &&
                               fileBytes != null &&
@@ -320,7 +350,7 @@ class _CreateClassState extends State<CreateClass> {
                         print(
                           "📦 Status Code: \${response.statusCode}",
                         );
-                        print("📦 Response Body: \$resBody");
+                        print("📦 Response Body: $resBody");
                         if (response.statusCode == 200 ||
                             response.statusCode == 201) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -334,8 +364,9 @@ class _CreateClassState extends State<CreateClass> {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text(
-                                '❌ Failed to add Task\n\$resBody',
+                                '❌ Failed to add Task\n$resBody',
                               ),
+
                               backgroundColor: Colors.red,
                             ),
                           );
