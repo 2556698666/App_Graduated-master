@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
+import 'package:app/Config/api_config.dart';
 
 class ChooseLevelPage extends StatefulWidget {
   const ChooseLevelPage({Key? key}) : super(key: key);
@@ -10,7 +14,7 @@ class ChooseLevelPage extends StatefulWidget {
 class _ChooseLevelPageState extends State<ChooseLevelPage> {
   int? _selectedGrade;
 
-  final List<String> grades = [
+  final List<String> gradeNames = [
     'First Grade',
     'Second Grade',
     'Third Grade',
@@ -18,6 +22,65 @@ class _ChooseLevelPageState extends State<ChooseLevelPage> {
     'Fifth Grade',
     'Sixth Grade',
   ];
+
+  Future<void> createGrade(String gradeName) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token');
+
+    if (token == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('User not logged in'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    final url = Uri.parse('$baseUrl/api/grades');
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({'name': gradeName}),
+      );
+
+      print('📦 Status: ${response.statusCode}');
+      print('📦 Body: ${response.body}');
+
+      final data = jsonDecode(response.body);
+
+      if ((response.statusCode == 200 || response.statusCode == 201) &&
+          data != null &&
+          data is Map &&
+          data['id'] != null) {
+        final gradeId = data['id'];
+        await prefs.setInt('grade_id', gradeId);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Grade created successfully')),
+        );
+
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to create grade\n${response.body}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Connection error: $e'), backgroundColor: Colors.red),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -77,52 +140,54 @@ class _ChooseLevelPageState extends State<ChooseLevelPage> {
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ...List.generate(grades.length, (index) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 6.0),
-                        child: SizedBox(
-                          width: 260,
-                          child: OutlinedButton(
-                            onPressed: () {
-                              setState(() {
-                                _selectedGrade = index;
-                              });
-                            },
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(
-                                color: _selectedGrade == index ? const Color(0xFF1976D2) : Colors.blue,
-                                width: 2,
-                              ),
-                              backgroundColor: _selectedGrade == index ? const Color(0xFFE3F0FB) : Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
+                  children: List.generate(gradeNames.length, (index) {
+                    final grade = gradeNames[index];
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6.0),
+                      child: SizedBox(
+                        width: 260,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            setState(() {
+                              _selectedGrade = index;
+                            });
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(
+                              color: _selectedGrade == index
+                                  ? const Color(0xFF1976D2)
+                                  : Colors.blue,
+                              width: 2,
                             ),
-                            child: Text(
-                              grades[index],
-                              style: TextStyle(
-                                color: const Color(0xFF1976D2),
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
+                            backgroundColor: _selectedGrade == index
+                                ? const Color(0xFFE3F0FB)
+                                : Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            grade,
+                            style: const TextStyle(
+                              color: Color(0xFF1976D2),
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
                             ),
                           ),
                         ),
-                      );
-                    }),
-                  ],
+                      ),
+                    );
+                  }),
                 ),
               ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _selectedGrade != null ? () {
-                    // Navigation to HomePage removed as it no longer exists.
-                    // You can add navigation to another page here if needed.
-                  } : null,
+                  onPressed: _selectedGrade != null
+                      ? () => createGrade(gradeNames[_selectedGrade!])
+                      : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1976D2),
                     padding: const EdgeInsets.symmetric(vertical: 16),

@@ -1,7 +1,11 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'choose_level_page.dart';
 import 'login_page.dart';
+import '../Config/api_config.dart';
+
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
@@ -35,19 +39,22 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> _register() async {
-    final name = _nameController.text;
-    final email = _emailController.text;
-    final password = _passwordController.text;
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
 
-    final url = Uri.parse('http://school_mangment.test/api/register?name=$name&email=$email&password=$password');
+    final url = Uri.parse('$baseUrl/api/register?name=$name&email=$email&password=$password');
 
     try {
       final response = await http.post(url);
       final data = jsonDecode(response.body);
 
-      if (data['status'] == 1) {
+      if (data['status'] == 1 && data['date'] != null && data['date']['token'] != null) {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('token', data['date']['token']);
+
         Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const LoginPage()),
+          MaterialPageRoute(builder: (context) => const ChooseLevelPage()),
         );
       } else {
         _showError('Registration failed');

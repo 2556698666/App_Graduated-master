@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
+
 import '../widget/custom_bottom_bar.dart';
-import 'create_class_page.dart';
-import 'search_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -11,102 +10,70 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
+        title: const Text("Back", style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
-        title: const Text('Back', style: TextStyle(fontWeight: FontWeight.bold)),
+        leading: const BackButton(color: Colors.black),
+        elevation: 0,
       ),
-      body: Column(
+      body: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          children: [
+            buildBlueButton("First Grade"),
+            const SizedBox(height: 15),
+            buildBlueButton("Arabic"),
+            const SizedBox(height: 20),
+            buildGrayBox("Arabic", Icons.article),
+            const SizedBox(height: 20),
+            buildGrayBox("Task", Icons.assignment),
+          ],
+        ),
+      ),
+      bottomNavigationBar: const CustomBottomBar(),
+    );
+  }
+
+  Widget buildBlueButton(String text) {
+    return SizedBox(
+      width: double.infinity,
+      height: 50,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color(0xFF1265ae),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        onPressed: () {},
+    child: Text(
+    text,
+    style: const TextStyle(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+    color: Colors.white, // ✅ ده السطر اللي هيخلي النص أبيض
+    ),
+    )));
+
+  }
+
+  Widget buildGrayBox(String title, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 15),
+      height: 90,
+      decoration: BoxDecoration(
+        color: Colors.grey[300],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Row(
         children: [
-          const SizedBox(height: 50),
-          SizedBox(
-            width: 400,
-            child: Container(
-              height: 80,
-              decoration: BoxDecoration(
-                color: const Color(0xff1265ae),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Center(
-                child: Text(
-                  'first grade',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 35,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 15),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              Column(
-                children: const [
-                  SizedBox(
-                    width: 150,
-                    child: SizedBox(
-                      height: 50,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Color(0xff1265ae),
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                        child: Center(
-                          child: Text('Ahmed',
-                              style: TextStyle(color: Colors.white, fontSize: 25)),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Icon(Icons.menu_book, size: 100),
-                  Text('Arabic',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 40)),
-                  SizedBox(height: 15),
-                  Icon(Icons.assignment, size: 100),
-                  Text('Class\nperformance', style: TextStyle(fontSize: 22)),
-                  SizedBox(height: 15),
-                  Icon(Icons.assignment, size: 100),
-                  Text('Home\nperformance', style: TextStyle(fontSize: 22)),
-                ],
-              ),
-              Column(
-                children: const [
-                  SizedBox(
-                    width: 150,
-                    child: SizedBox(
-                      height: 50,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: Color(0xff1265ae),
-                          borderRadius: BorderRadius.all(Radius.circular(10)),
-                        ),
-                        child: Center(
-                          child: Text('Arabic',
-                              style: TextStyle(color: Colors.white, fontSize: 25)),
-                        ),
-                      ),
-                    ),
-                  ),
-                  Icon(Icons.group, size: 100),
-                  Text('student',
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 40)),
-                  SizedBox(height: 15),
-                  Icon(Icons.assignment, size: 100),
-                  Text('Monthly\nassessmwnt', style: TextStyle(fontSize: 22)),
-                  SizedBox(height: 15),
-                  Icon(Icons.assignment, size: 100),
-                  Text('Weekly\nperformance', style: TextStyle(fontSize: 22)),
-                ],
-              ),
-            ],
-          ),
+          Icon(icon, size: 40),
+          const SizedBox(width: 10),
+          Text(title, style: const TextStyle(fontSize: 18)),
+          const Spacer(),
+          const Icon(Icons.download, size: 35),
         ],
-      ),
-      bottomNavigationBar: const Padding(
-        padding: EdgeInsets.only(bottom: 8.0),
-        child: CustomBottomBar(),
       ),
     );
   }
+
 }

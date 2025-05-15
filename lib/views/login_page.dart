@@ -3,8 +3,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../Config/api_config.dart';
 import 'register_page.dart';
 import 'welcome_page.dart';
+import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -36,7 +38,7 @@ class _LoginPageState extends State<LoginPage> {
     final email = _emailController.text;
     final password = _passwordController.text;
 
-    final url = Uri.parse('http://school_mangment.test/api/login?email=$email&password=$password');
+    final url = Uri.parse('$baseUrl/api/login?email=$email&password=$password');
 
     try {
       final response = await http.post(url);
@@ -50,7 +52,7 @@ class _LoginPageState extends State<LoginPage> {
 
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => const WelcomePage()),
+            MaterialPageRoute(builder: (context) => const HomePage()),
           );
         } else {
           _showError('Invalid credentials');

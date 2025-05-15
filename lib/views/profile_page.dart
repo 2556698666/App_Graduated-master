@@ -1,11 +1,10 @@
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:app/widget/custom_bottom_bar.dart';
 import 'package:app/widget/text_field.dart';
-
+import 'package:app/Config/api_config.dart';
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
 
@@ -22,7 +21,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://school_mangment.test/api/logout'),
+        Uri.parse('$baseUrl/api/logout'),
         headers: {
           'Authorization': 'Bearer $token',
         },
@@ -63,7 +62,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
 
       final response = await http.get(
-        Uri.parse('http://school_mangment.test/api/profile'),
+        Uri.parse('$baseUrl/api/profile'),
         headers: {
           'Authorization': 'Bearer $token',
         },
@@ -112,57 +111,57 @@ class _ProfilePageState extends State<ProfilePage> {
             : SingleChildScrollView(
           child: Column(
             children: [
-            customTextField(
-            text1: 'ID',
-            text2: id ?? '',
-            validH: 25,
-            validV: 15,
-            enabled: false,
-          ),
-          customTextField(
-            text1: 'Name',
-            text2: name ?? '',
-            validH: 25,
-            validV: 15,
-            enabled: false,
-          ),
-          customTextField(
-            text1: 'Email',
-            text2: email ?? '',
-            validH: 25,
-            validV: 15,
-            enabled: false,
-          ),
-          customTextField(
-            text1: 'Change password',
-            text2: '***********',
-            validH: 25,
-            validV: 15,
-          ),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: 250,
-            child: Container(
-              height: 60,
-              decoration: BoxDecoration(
-                color: const Color(0xff1265ae),
-                borderRadius: BorderRadius.circular(10),
+              customTextField(
+                text1: 'ID',
+                text2: id ?? '',
+                validH: 25,
+                validV: 15,
+                enabled: false,
               ),
-              child: InkWell(
-                onTap: logout,
-                child: const Center(
-                  child: Text(
-                    'Log Out',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 22,
+              customTextField(
+                text1: 'Name',
+                text2: name ?? '',
+                validH: 25,
+                validV: 15,
+                enabled: false,
+              ),
+              customTextField(
+                text1: 'Email',
+                text2: email ?? '',
+                validH: 25,
+                validV: 15,
+                enabled: false,
+              ),
+              customTextField(
+                text1: 'Change password',
+                text2: '***********',
+                validH: 25,
+                validV: 15,
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: 250,
+                child: Container(
+                  height: 60,
+                  decoration: BoxDecoration(
+                    color: const Color(0xff1265ae),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: InkWell(
+                    onTap: logout,
+                    child: const Center(
+                      child: Text(
+                        'Log Out',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22,
+                        ),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ),
-          )],
+              )],
           ),
         ),
         bottomNavigationBar: Container(

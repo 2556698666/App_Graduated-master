@@ -4,102 +4,80 @@ import '../views/home_page.dart';
 import '../views/profile_page.dart';
 import '../views/search_page.dart';
 
-
 class CustomBottomBar extends StatelessWidget {
-  const CustomBottomBar({super.key});
+  final int currentIndex;
+
+  const CustomBottomBar({super.key, this.currentIndex = 0});
+
+  void _onItemTapped(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        if (currentIndex != 0) {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (_) => const HomePage()));
+        }
+        break;
+      case 1:
+        if (currentIndex != 1) {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (_) => const SearchPage()));
+        }
+        break;
+      case 2:
+        if (currentIndex != 2) {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (_) => const CreateClass()));
+        }
+        break;
+      case 4:
+        if (currentIndex != 4) {
+          Navigator.pushReplacement(
+              context, MaterialPageRoute(builder: (_) => const ProfilePage()));
+        }
+        break;
+      default:
+      // index 3 = Add Box (you can define a page or use showModalBottomSheet)
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 80,
-      decoration: const BoxDecoration(
-        color: Color(0xff1265ae), // الأزرق
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(16),
-          topRight: Radius.circular(16),
-        ),
-      ),
-      child: Stack(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const ProfilePage()),
-                  );
-                },
-                child: const Icon(Icons.person, size: 35, color: Colors.black),
-              ),
-
-              // 🔔 Notifications with red dot
-              Stack(
-                children: [
-                  const Icon(Icons.notifications, size: 35, color: Colors.black),
-                  Positioned(
-                    top: 4,
-                    right: 0,
-                    child: Container(
-                      width: 8,
-                      height: 8,
-                      decoration: const BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              // ⬆️ Floating home button
-              Container(width: 35), // فراغ مكان الأيقونة في البار
-
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const CreateClass()),
-                  );
-                },
-                child: const Icon(Icons.check_box, size: 35, color: Colors.black),
-              ),
-              GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const SearchPage()),
-                  );
-                },
-                child: const Icon(Icons.search, size: 35, color: Colors.black),
-              ),
-            ],
-          ),
-
-          // 🏠 Floating home icon
-          Align(
-            alignment: Alignment.topCenter,
-            child: GestureDetector(
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const HomePage()),
-                );
-              },
-              child: Container(
-                height: 70,
-                width: 70,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.black12, width: 2),
-                ),
-                child: const Icon(Icons.home, size: 40, color: Colors.black),
-              ),
+      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+      color: Colors.transparent,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: const Color(0xFF1976D2).withOpacity(0.15),
+          selectedItemColor: const Color(0xFF1976D2),
+          unselectedItemColor: Colors.black,
+          currentIndex: currentIndex,
+          onTap: (index) => _onItemTapped(context, index),
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home_outlined),
+              label: '',
             ),
-          ),
-        ],
+            BottomNavigationBarItem(
+              icon: Icon(Icons.search),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.check_box),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.add_box),
+              label: '',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: '',
+            ),
+          ],
+        ),
       ),
     );
   }
