@@ -49,6 +49,8 @@ class _LoginPageState extends State<LoginPage> {
         if (data['token'] != null) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('token', data['token']);
+          await prefs.setString('role', data['user']['role']);
+
 
           Navigator.pushReplacement(
             context,

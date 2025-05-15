@@ -13,73 +13,61 @@ class ChooseLevelPage extends StatefulWidget {
 
 class _ChooseLevelPageState extends State<ChooseLevelPage> {
   int? _selectedGrade;
+  List<Map<String, dynamic>> _grades = [];
+  bool _isLoading = true;
 
-  final List<String> gradeNames = [
-    'First Grade',
-    'Second Grade',
-    'Third Grade',
-    'Fourth Grade',
-    'Fifth Grade',
-    'Sixth Grade',
-  ];
+  @override
+  void initState() {
+    super.initState();
+    fetchGrades();
+  }
 
-  Future<void> createGrade(String gradeName) async {
+  Future<void> fetchGrades() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('token');
 
     if (token == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('User not logged in'),
-          backgroundColor: Colors.red,
-        ),
+        const SnackBar(content: Text('User not logged in'), backgroundColor: Colors.red),
       );
       return;
     }
 
     final url = Uri.parse('$baseUrl/api/grades');
-
     try {
-      final response = await http.post(
+      final response = await http.get(
         url,
         headers: {
           'Authorization': 'Bearer $token',
           'Accept': 'application/json',
-          'Content-Type': 'application/json',
         },
-        body: jsonEncode({'name': gradeName}),
       );
 
-      print('📦 Status: ${response.statusCode}');
-      print('📦 Body: ${response.body}');
-
-      final data = jsonDecode(response.body);
-
-      if ((response.statusCode == 200 || response.statusCode == 201) &&
-          data != null &&
-          data is Map &&
-          data['id'] != null) {
-        final gradeId = data['id'];
-        await prefs.setInt('grade_id', gradeId);
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Grade created successfully')),
-        );
-
-        Navigator.pushReplacementNamed(context, '/home');
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        if (data is List) {
+          setState(() {
+            _grades = List<Map<String, dynamic>>.from(data);
+            _isLoading = false;
+          });
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Failed to create grade\n${response.body}'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Failed to load grades: ${response.statusCode}'), backgroundColor: Colors.red),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Connection error: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Error fetching grades: $e'), backgroundColor: Colors.red),
       );
     }
+  }
+
+  Future<void> selectGrade(Map<String, dynamic> grade) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('grade_id', grade['id']);
+
+    Navigator.pushReplacementNamed(context, '/home'); // غيرها حسب الصفحة المطلوبة
   }
 
   @override
@@ -100,20 +88,14 @@ class _ChooseLevelPageState extends State<ChooseLevelPage> {
                       Navigator.of(context).maybePop();
                     },
                   ),
-                  const Text(
-                    'Back',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
-                  ),
+                  const Text('Back', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400)),
                 ],
               ),
               const SizedBox(height: 32),
               const Center(
                 child: Text(
                   'Choose Your Level !',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
               ),
               const SizedBox(height: 32),
@@ -127,21 +109,19 @@ class _ChooseLevelPageState extends State<ChooseLevelPage> {
                   ),
                   child: const Text(
                     'Primary School',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
                     textAlign: TextAlign.center,
                   ),
                 ),
               ),
               const SizedBox(height: 24),
-              Center(
+              _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
-                  children: List.generate(gradeNames.length, (index) {
-                    final grade = gradeNames[index];
+                  children: List.generate(_grades.length, (index) {
+                    final grade = _grades[index];
                     return Padding(
                       padding: const EdgeInsets.symmetric(vertical: 6.0),
                       child: SizedBox(
@@ -168,7 +148,7 @@ class _ChooseLevelPageState extends State<ChooseLevelPage> {
                             ),
                           ),
                           child: Text(
-                            grade,
+                            grade['name'],
                             style: const TextStyle(
                               color: Color(0xFF1976D2),
                               fontWeight: FontWeight.bold,
@@ -186,7 +166,7 @@ class _ChooseLevelPageState extends State<ChooseLevelPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: _selectedGrade != null
-                      ? () => createGrade(gradeNames[_selectedGrade!])
+                      ? () => selectGrade(_grades[_selectedGrade!])
                       : null,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF1976D2),
@@ -197,11 +177,7 @@ class _ChooseLevelPageState extends State<ChooseLevelPage> {
                   ),
                   child: const Text(
                     'Get Started',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                   ),
                 ),
               ),

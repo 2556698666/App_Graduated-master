@@ -43,15 +43,29 @@ class _RegisterPageState extends State<RegisterPage> {
     final email = _emailController.text.trim();
     final password = _passwordController.text.trim();
 
-    final url = Uri.parse('$baseUrl/api/register?name=$name&email=$email&password=$password');
+    final url = Uri.parse('$baseUrl/api/register');
 
     try {
-      final response = await http.post(url);
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+          'password': password,
+          'role': 'student', // ✅ إرسال الدور
+        }),
+      );
+
       final data = jsonDecode(response.body);
 
       if (data['status'] == 1 && data['date'] != null && data['date']['token'] != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('token', data['date']['token']);
+        await prefs.setString('role', 'student'); // ✅ حفظ الدور
 
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(builder: (context) => const ChooseLevelPage()),
